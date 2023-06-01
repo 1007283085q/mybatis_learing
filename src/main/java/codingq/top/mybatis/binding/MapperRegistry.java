@@ -1,7 +1,9 @@
 package codingq.top.mybatis.binding;
 
 import cn.hutool.core.lang.ClassScanner;
+import codingq.top.mybatis.session.Configuration;
 import codingq.top.mybatis.session.SqlSession;
+import jdk.nashorn.internal.runtime.regexp.joni.Config;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +17,12 @@ import java.util.Set;
  * @Version 1.0
  **/
 public class MapperRegistry {
+    private Configuration configuration;
+
+    public MapperRegistry(Configuration config) {
+        this.configuration = config;
+    }
+
     /**
      * 负责缓存所有的代理完成的mapper的代理工厂，之后通过类的类型返回对应的实例
      */
@@ -22,12 +30,13 @@ public class MapperRegistry {
 
     public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
         final MapperProxyFactory<T> mapperProxyFactory = (MapperProxyFactory<T>) knownMappers.get(type);
-        if(mapperProxyFactory == null){
-            throw new RuntimeException("Type"+type+"is not known to the MapperRegistry.");
+        if (mapperProxyFactory == null) {
+            throw new RuntimeException("Type" + type + "is not known to the MapperRegistry.");
         }
         try {
             return mapperProxyFactory.newInstance(sqlSession);
-        }catch (Exception e){
+        }
+        catch (Exception e) {
             throw new RuntimeException("Error getting mapper instance. Cause: ");
         }
     }

@@ -18,10 +18,12 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
     private static final long serialVersionUID = -6424540398559729838L;
     private SqlSession sqlSession;
     private final Class<T> mapperInterface;
+    private final Map<Method, MapperMethod> methodCache;
 
-    public MapperProxy(SqlSession sqlSession, Class<T> mapperInterface) {
+    public MapperProxy(SqlSession sqlSession, Class<T> mapperInterface,Map<Method, MapperMethod> methodCache) {
         this.sqlSession = sqlSession;
         this.mapperInterface = mapperInterface;
+        this.methodCache = methodCache;
     }
 
     /**
@@ -42,7 +44,21 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
         }
         else {
             //如果不是返回一个代表这个类已经被代理的方式，实际情况可能是直接执行对应的xml解析出来的语句
-            return sqlSession.selectOne(method.getName(), args);
+            final MapperMethod mapperMethod = cachedMapperMethod(method);
+            return mapperMethod.execute(sqlSession, args);
         }
     }
+    /**
+     * 去缓存中找MapperMethod
+     */
+    private MapperMethod cachedMapperMethod(Method method) {
+        MapperMethod mapperMethod = methodCache.get(method);
+        if (mapperMethod == null) {
+            //找不到才去new
+            mapperMethod = new MapperMethod(mapperInterface, method, sqlSession.getConfiguration());
+            methodCache.put(method, mapperMethod);
+        }
+        return mapperMethod;
+    }
+
 }
