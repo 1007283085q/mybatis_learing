@@ -1,6 +1,9 @@
 package codingq.top.mybatis.binding;
 
 import codingq.top.mybatis.binding.dao.IUserDao;
+import codingq.top.mybatis.session.SqlSession;
+import codingq.top.mybatis.session.SqlSessionFactory;
+import codingq.top.mybatis.session.defaults.DefaultSqlSessionFactory;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,14 +23,14 @@ public class ApiTest {
     private Logger logger = LoggerFactory.getLogger(ApiTest.class);
     @Test
     public void test_MapperProxyFactory() {
-        MapperProxyFactory<IUserDao> factory = new MapperProxyFactory<>(IUserDao.class);
+        MapperRegistry registry = new MapperRegistry();
+        registry.addMappers("codingq.top.mybatis.binding.dao");
 
-        Map<String, String> sqlSession = new HashMap<>();
-        sqlSession.put("codingq.top.mybatis.binding.dao.IUserDao.queryUserName", "模拟执行 Mapper.xml 中 SQL 语句的操作：查询用户姓名");
-        sqlSession.put("codingq.top.mybatis.binding.dao.IUserDao.queryUserAge", "模拟执行 Mapper.xml 中 SQL 语句的操作：查询用户年龄");
-        IUserDao userDao = factory.newInstance(sqlSession);
+        SqlSessionFactory sqlSessionFactory=new DefaultSqlSessionFactory(registry);
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        IUserDao mapper = sqlSession.getMapper(IUserDao.class);
 
-        String res = userDao.queryUserName("10001");
+        String res = mapper.queryUserName("10001");
         logger.info("测试结果：{}", res);
     }
     @Test

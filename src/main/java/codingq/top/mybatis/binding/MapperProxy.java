@@ -1,5 +1,7 @@
 package codingq.top.mybatis.binding;
 
+import codingq.top.mybatis.session.SqlSession;
+
 import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -14,10 +16,10 @@ import java.util.Map;
  **/
 public class MapperProxy<T> implements InvocationHandler, Serializable {
     private static final long serialVersionUID = -6424540398559729838L;
-    private Map<String, String> sqlSession;
+    private SqlSession sqlSession;
     private final Class<T> mapperInterface;
 
-    public MapperProxy(Map<String, String> sqlSession, Class<T> mapperInterface) {
+    public MapperProxy(SqlSession sqlSession, Class<T> mapperInterface) {
         this.sqlSession = sqlSession;
         this.mapperInterface = mapperInterface;
     }
@@ -40,7 +42,7 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
         }
         else {
             //如果不是返回一个代表这个类已经被代理的方式，实际情况可能是直接执行对应的xml解析出来的语句
-            return "返回一个代理增强类" + sqlSession.get(mapperInterface.getName() + "." + method.getName());
+            return sqlSession.selectOne(method.getName(), args);
         }
     }
 }
